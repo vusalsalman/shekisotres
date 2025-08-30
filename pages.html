@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şəki Otel və Mağaza Slider</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://unpkg.com/normalize.css') layer(normalize);
+        
+        @layer normalize, base, demo;
+        
+        :root {
+            --gap: 8px;
+            --base: clamp(2rem, 8cqi, 80px);
+            --easing: linear(
+                0 0%,
+                0.1538 4.09%,
+                0.2926 8.29%,
+                0.4173 12.63%,
+                0.5282 17.12%,
+                0.6255 21.77%,
+                0.7099 26.61%,
+                0.782 31.67%,
+                0.8425 37%,
+                0.8887 42.23%,
+                0.9257 47.79%,
+                0.9543 53.78%,
+                0.9752 60.32%,
+                0.9883 67.11%,
+                0.9961 75%,
+                1 100%
+            );
+            --speed: 0.6s;
+            --article-width: 300;
+            --items: 7;
+            --ideal: 300px;
+            --primary-color: #4a6cf7;
+            --secondary-color: #6d4c41;
+            --light-color: #f8f9fa;
+            --dark-color: #2d3748;
+            --accent-color: #ff6b6b;
+        }
+
+        @layer base {
+            :root {
+                --font-size-min: 16;
+                --font-size-max: 20;
+                --font-ratio-min: 1.2;
+                --font-ratio-max: 1.33;
+                --font-width-min: 375;
+                --font-width-max: 1500;
+            }
+
+            html {
+                color-scheme: light dark;
+            }
+
+            [data-theme='light'] {
+                color-scheme: light only;
+            }
+
+            [data-theme='dark'] {
+                color-scheme: dark only;
+            }
+
+            :where(.fluid) {
+                --fluid-min: calc(
+                    var(--font-size-min) * pow(var(--font-ratio-min), var(--font-level, 0))
+                );
+                --fluid-max: calc(
+                    var(--font-size-max) * pow(var(--font-ratio-max), var(--font-level, 0))
+                );
+                --fluid-preferred: calc(
+                    (var(--fluid-max) - var(--fluid-min)) /
+                        (var(--font-width-max) - var(--font-width-min))
+                );
+                --fluid-type: clamp(
+                    (var(--fluid-min) / 16) * 1rem,
+                    ((var(--fluid-min) / 16) * 1rem) -
+                        (((var(--fluid-preferred) * var(--font-width-min)) / 16) * 1rem) +
+                        (var(--fluid-preferred) * var(--variable-unit, 100vi)),
+                    (var(--fluid-max) / 16) * 1rem
+                );
+                font-size: var(--fluid-type);
+            }
+
+            *,
+            *:after,
+            *:before {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                display: grid;
+                place-items: center;
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                color: #333;
+                line-height: 1.6;
+                padding-top: 70px;
+                width: 100%;
+                overflow-x: hidden;
+            }
+
+            body::before {
+                --size: 45px;
+                --line: color-mix(in hsl, canvasText, transparent 70%);
+                content: '';
+                height: 100vh;
+                width: 100vw;
+                position: fixed;
+                background: linear-gradient(
+                        90deg,
+                        var(--line) 1px,
+                        transparent 1px var(--size)
+                    )
+                    50% 50% / var(--size) var(--size),
+                    linear-gradient(var(--line) 1px, transparent 1px var(--size)) 50% 50% /
+                        var(--size) var(--size);
+                mask: linear-gradient(-20deg, transparent 50%, white);
+                top: 0;
+                transform-style: flat;
+                pointer-events: none;
+                z-index: -1;
+            }
+
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border-width: 0;
+            }
+            
+            /* Navbar Styles */
+            .navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                background: rgba(255, 255, 255, 0.98);
+                box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+                padding: 12px 0;
+                z-index: 1000;
+                display: flex;
+                justify-content: center;
+            }
+            
+            .nav-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                max-width: 1300px;
+                padding: 0 20px;
+            }
+            
+            .logo {
+                font-weight: 700;
+                font-size: 1.8rem;
+                color: var(--primary-color);
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+            }
+            
+            .logo i {
+                margin-right: 8px;
+                color: var(--accent-color);
+            }
+            
+            .nav-links {
+                display: flex;
+                list-style: none;
+            }
+            
+            .nav-links li {
+                margin-left: 30px;
+            }
+            
+            .nav-links a {
+                text-decoration: none;
+                color: var(--dark-color);
+                font-weight: 500;
+                transition: color 0.3s ease;
+                position: relative;
+                padding: 5px 0;
+                font-size: 1.05rem;
+            }
+            
+            .nav-links a:after {
+                content: '';
+                position: absolute;
+                width: 0;
+                height: 3px;
+                bottom: 0;
+                left: 0;
+                background-color: var(--primary-color);
+                transition: width 0.3s ease;
+                border-radius: 2px;
+            }
+            
+            .nav-links a:hover {
+                color: var(--primary-color);
+            }
+            
+            .nav-links a:hover:after {
+                width: 100%;
+            }
+            
+            /* Main Content */
+            .container {
+                max-width: 1366px;
+                width: 100%;
+                margin: 0 auto;
+                padding: 0 15px;
+            }
+            
+            .main-content {
+                display: flex;
+                margin: 30px 0;
+                gap: 20px;
+                width: 100%;
+            }
+            
+            /* Sidebar - Reklam */
+            .sidebar {
+                flex: 0 0 280px;
+                background: white;
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+                height: fit-content;
+                position: sticky;
+                top: 90px;
+            }
+            
+            .ad-section-title {
+                font-size: 1.3rem;
+                color: var(--dark-color);
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid var(--primary-color);
+                text-align: center;
+            }
+            
+            .ad-container {
+                margin-bottom: 25px;
+                border: 1px solid #eee;
+                border-radius: 10px;
+                overflow: hidden;
+                transition: all 0.3s ease;
+                background: white;
+            }
+            
+            .ad-container:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+            }
+            
+            .ad-image {
+                width: 100%;
+                height: 160px;
+                object-fit: cover;
+                display: block;
+            }
+            
+            .ad-content {
+                padding: 15px;
+            }
+            
+            .ad-title {
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: var(--dark-color);
+                font-size: 1.1rem;
+            }
+            
+            .ad-desc {
+                font-size: 0.9rem;
+                color: #718096;
+                margin-bottom: 12px;
+                line-height: 1.4;
+            }
+            
+            .ad-btn {
+                display: inline-block;
+                background: var(--primary-color);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 5px;
+                text-decoration: none;
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+                font-weight: 500;
+            }
+            
+            .ad-btn:hover {
+                background: #3b5bdb;
+                transform: scale(1.05);
+            }
+            
+            /* Center Content - Sliders */
+            .center-content {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .section-title {
+                text-align: center;
+                margin: 30px 0 20px;
+                color: var(--dark-color);
+                position: relative;
+                padding-bottom: 15px;
+                font-size: 1.8rem;
+            }
+            
+            .section-title:after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 100px;
+                height: 4px;
+                background: var(--primary-color);
+                border-radius: 3px;
+            }
+            
+            /* Otel Slider */
+            .slider-container {
+                background: white;
+                border-radius: 12px;
+                padding: 25px;
+                margin-bottom: 30px;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            }
+            
+            .hotel-slider {
+                display: flex;
+                gap: 20px;
+                overflow-x: auto;
+                padding: 15px 5px;
+                scrollbar-width: thin;
+                scrollbar-color: var(--primary-color) #e2e8f0;
+            }
+            
+            .hotel-slider::-webkit-scrollbar {
+                height: 8px;
+            }
+            
+            .hotel-slider::-webkit-scrollbar-track {
+                background: #e2e8f0;
+                border-radius: 4px;
+            }
+            
+            .hotel-slider::-webkit-scrollbar-thumb {
+                background: var(--primary-color);
+                border-radius: 4px;
+            }
+            
+            .hotel-card {
+                flex: 0 0 300px;
+                background: white;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+            
+            .hotel-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            }
+            
+            .hotel-image {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+                display: block;
+            }
+            
+            .hotel-info {
+                padding: 18px;
+            }
+            
+            .hotel-name {
+                font-size: 1.25rem;
+                margin: 0 0 8px 0;
+                color: var(--dark-color);
+                font-weight: 600;
+            }
+            
+            .hotel-location {
+                color: #718096;
+                margin: 0 0 12px 0;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 0.95rem;
+            }
+            
+            .hotel-price {
+                font-weight: bold;
+                color: var(--primary-color);
+                margin: 0;
+                font-size: 1.15rem;
+            }
+            
+            .rating {
+                display: flex;
+                margin: 10px 0;
+                color: #ffc107;
+                gap: 2px;
+            }
+            
+            /* Mağaza Slider - Açıq rəng */
+            .store-slider {
+                display: flex;
+                gap: 20px;
+                overflow-x: auto;
+                padding: 15px 5px;
+                scrollbar-width: thin;
+                scrollbar-color: var(--secondary-color) #e2e8f0;
+            }
+            
+            .store-slider::-webkit-scrollbar {
+                height: 8px;
+            }
+            
+            .store-slider::-webkit-scrollbar-track {
+                background: #e2e8f0;
+                border-radius: 4px;
+            }
+            
+            .store-slider::-webkit-scrollbar-thumb {
+                background: var(--secondary-color);
+                border-radius: 4px;
+            }
+            
+            .store-card {
+                flex: 0 0 240px;
+                background: linear-gradient(135deg, #fdfcfb 0%, #f5f0eb 100%);
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+                text-align: center;
+                padding: 25px 20px;
+                border: 1px solid rgba(255, 255, 255, 0.7);
+            }
+            
+            .store-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+            
+            .store-icon {
+                font-size: 2.8rem;
+                margin-bottom: 15px;
+                color: var(--secondary-color);
+                background: rgba(255, 255, 255, 0.9);
+                width: 80px;
+                height: 80px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                margin: 0 auto 20px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+            
+            .store-name {
+                font-size: 1.2rem;
+                margin: 0 0 12px 0;
+                color: #5d4037;
+                font-weight: 600;
+            }
+            
+            .store-desc {
+                color: #8d6e63;
+                font-size: 0.95rem;
+                margin-bottom: 20px;
+                line-height: 1.5;
+            }
+            
+            .store-btn {
+                display: inline-block;
+                background: var(--secondary-color);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 25px;
+                text-decoration: none;
+                font-size: 0.95rem;
+                transition: all 0.3s ease;
+                font-weight: 500;
+            }
+            
+            .store-btn:hover {
+                background: #5d4037;
+                transform: scale(1.05);
+                box-shadow: 0 4px 12px rgba(93, 64, 55, 0.3);
+            }
+            
+            /* Right Sidebar - Reklam */
+            .right-sidebar {
+                flex: 0 0 280px;
+            }
+            
+            /* Contact Section */
+            .contact-info {
+                text-align: center;
+                margin: 40px 0;
+                padding: 35px;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            }
+            
+            .contact-title {
+                margin: 0 0 20px 0;
+                color: var(--dark-color);
+                font-size: 1.7rem;
+                font-weight: 600;
+            }
+            
+            .contact-details {
+                color: #4a5568;
+                margin: 12px 0;
+                font-size: 1.15rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
+            
+            .contact-details i {
+                color: var(--primary-color);
+                font-size: 1.3rem;
+            }
+            
+            /* Footer */
+            .footer {
+                background: var(--dark-color);
+                color: white;
+                padding: 40px 0 20px;
+                text-align: center;
+                margin-top: 60px;
+                width: 100%;
+            }
+            
+            .footer-content {
+                display: flex;
+                justify-content: space-around;
+                flex-wrap: wrap;
+                max-width: 1300px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
+            
+            .footer-section {
+                flex: 1;
+                min-width: 250px;
+                margin-bottom: 30px;
+                padding: 0 20px;
+            }
+            
+            .footer-heading {
+                margin-bottom: 20px;
+                font-size: 1.3rem;
+                position: relative;
+                padding-bottom: 12px;
+                font-weight: 600;
+            }
+            
+            .footer-heading:after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 60px;
+                height: 3px;
+                background: var(--primary-color);
+                border-radius: 2px;
+            }
+            
+            .footer-links {
+                list-style: none;
+            }
+            
+            .footer-links li {
+                margin-bottom: 12px;
+            }
+            
+            .footer-links a {
+                color: #cbd5e0;
+                text-decoration: none;
+                transition: color 0.3s ease;
+                font-size: 1.05rem;
+            }
+            
+            .footer-links a:hover {
+                color: var(--primary-color);
+            }
+            
+            .social-icons {
+                display: flex;
+                justify-content: center;
+                gap: 18px;
+                margin-top: 20px;
+            }
+            
+            .social-icons a {
+                color: white;
+                font-size: 1.4rem;
+                transition: color 0.3s ease;
+            }
+            
+            .social-icons a:hover {
+                color: var(--primary-color);
+            }
+            
+            .copyright {
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid #4a5568;
+                color: #cbd5e0;
+                font-size: 1rem;
+            }
+            
+            /* Dəyişən reklamlar üçün animasiya */
+            .ad-container {
+                animation: fadeIn 1s ease;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            /* Responsive Design */
+            @media (max-width: 1366px) {
+                .container {
+                    padding: 0 30px;
+                }
+                
+                .hotel-card {
+                    flex: 0 0 280px;
+                }
+                
+                .store-card {
+                    flex: 0 0 220px;
+                }
+            }
+            
+            @media (max-width: 1200px) {
+                .main-content {
+                    flex-direction: column;
+                }
+                
+                .sidebar, .right-sidebar {
+                    flex: 1;
+                    margin-bottom: 25px;
+                    position: static;
+                }
+                
+                .ad-row {
+                    display: flex;
+                    gap: 20px;
+                    overflow-x: auto;
+                    padding: 10px 5px;
+                }
+                
+                .ad-container {
+                    flex: 0 0 300px;
+                    margin-bottom: 0;
+                }
+            }
+            
+            @media (max-width: 992px) {
+                .nav-container {
+                    flex-direction: column;
+                    gap: 15px;
+                }
+                
+                .logo {
+                    margin-bottom: 5px;
+                }
+                
+                .nav-links {
+                    width: 100%;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+                
+                .nav-links li {
+                    margin: 0 15px;
+                }
+                
+                .hotel-card, .store-card {
+                    flex: 0 0 260px;
+                }
+                
+                .footer-content {
+                    flex-direction: column;
+                    gap: 30px;
+                }
+            }
+            
+            @media (max-width: 768px) {
+                .nav-links li {
+                    margin: 0 10px 10px;
+                }
+                
+                .section-title {
+                    font-size: 1.6rem;
+                }
+                
+                .hotel-card, .store-card {
+                    flex: 0 0 240px;
+                }
+                
+                .ad-row {
+                    flex-direction: column;
+                    gap: 15px;
+                }
+                
+                .ad-container {
+                    flex: 1;
+                }
+            }
+            
+            @media (max-width: 576px) {
+                .nav-links {
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 10px;
+                }
+                
+                .nav-links li {
+                    margin: 5px 0;
+                }
+                
+                .hotel-card, .store-card {
+                    flex: 0 0 220px;
+                }
+                
+                .section-title {
+                    font-size: 1.4rem;
+                }
+                
+                .contact-details {
+                    flex-direction: column;
+                    gap: 5px;
+                }
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo"><i class="fas fa-hotel"></i>OTELİN SLİDER</a>
+            <ul class="nav-links">
+                <li><a href="#">ANA SƏHİFƏ</a></li>
+                <li><a href="#">OTELLƏR</a></li>
+                <li><a href="#">MAĞAZALAR</a></li>
+                <li><a href="#">HAQQIMIZDA</a></li>
+                <li><a href="#">ƏLAQƏ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="main-content">
+            <!-- Left Sidebar - Reklam -->
+            <div class="sidebar">
+                <h3 class="ad-section-title">TƏKLİFLƏR</h3>
+                <div class="ad-container">
+                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Sheki Saray Hotel" class="ad-image">
+                    <div class="ad-content">
+                        <h4 class="ad-title">Sheki Saray Hotel</h4>
+                        <p class="ad-desc">Xüsusi endirim - 15% endirim hər bir rezervasiyada</p>
+                        <a href="#" class="ad-btn">İndi Rezerv et</a>
+                    </div>
+                </div>
+                
+                <div class="ad-container">
+                    <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Sheki Palace Hotel" class="ad-image">
+                    <div class="ad-content">
+                        <h4 class="ad-title">Sheki Palace Hotel</h4>
+                        <p class="ad-desc">Həftəsonu üçün xüsusi təklif - 2 gecə 1 gecə qiymətinə</p>
+                        <a href="#" class="ad-btn">Ətraflı</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Content - Sliders -->
+            <div class="center-content">
+                <!-- Otel Slider -->
+                <h2 class="section-title">ŞƏKİ OTELLƏRİ</h2>
+                <div class="slider-container">
+                    <div class="hotel-slider">
+                        <div class="hotel-card">
+                            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Sheki Saray Hotel" class="hotel-image">
+                            <div class="hotel-info">
+                                <h3 class="hotel-name">Sheki Saray Hotel</h3>
+                                <p class="hotel-location"><i class="fas fa-map-marker-alt"></i> Şəki Mərkəz</p>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                                <p class="hotel-price">Gecə: 120 AZN-dən</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hotel-card">
+                            <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Sheki Karvansaray Hotel" class="hotel-image">
+                            <div class="hotel-info">
+                                <h3 class="hotel-name">Sheki Karvansaray Hotel</h3>
+                                <p class="hotel-location"><i class="fas fa-map-marker-alt"></i> Tarixi Şəhər</p>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <p class="hotel-price">Gecə: 150 AZN-dən</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hotel-card">
+                            <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Sheki Resort" class="hotel-image">
+                            <div class="hotel-info">
+                                <h3 class="hotel-name">Sheki Resort</h3>
+                                <p class="hotel-location"><i class="fas fa-map-marker-alt"></i> Dağətəyi</p>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                                <p class="hotel-price">Gecə: 200 AZN-dən</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hotel-card">
+                            <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Sheki View Hotel" class="hotel-image">
+                            <div class="hotel-info">
+                                <h3 class="hotel-name">Sheki View Hotel</h3>
+                                <p class="hotel-location"><i class="fas fa-map-marker-alt"></i> Mənzərəli Təpə</p>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                                <p class="hotel-price">Gecə: 90 AZN-dən</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hotel-card">
+                            <img src="https://images.unsplash.com/photo-1582582621959-48d27397dc69?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Sheki Mountain Hotel" class="hotel-image">
+                            <div class="hotel-info">
+                                <h3 class="hotel-name">Sheki Mountain Hotel</h3>
+                                <p class="hotel-location"><i class="fas fa-map-marker-alt"></i> Qəbələ yolu</p>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <p class="hotel-price">Gecə: 180 AZN-dən</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mağaza Slider -->
+                <h2 class="section-title">ŞƏKİ MAĞAZALARI</h2>
+                <div class="slider-container">
+                    <div class="store-slider">
+                        <div class="store-card">
+                            <div class="store-icon"><i class="fas fa-rug"></i></div>
+                            <h3 class="store-name">Xalça Mağazası</h3>
+                            <p class="store-desc">Ənənəvi xalçalar və əllə hazırlanmış sənət əsərləri</p>
+                            <a href="#" class="store-btn">Ziyarət et</a>
+                        </div>
+                        
+                        <div class="store-card">
+                            <div class="store-icon"><i class="fas fa-cookie-bite"></i></div>
+                            <h3 class="store-name">Şirniyyat Mağazası</h3>
+                            <p class="store-desc">Pəhləva, halva və digər ənənəvi şirniyyatlar</p>
+                            <a href="#" class="store-btn">Ziyarət et</a>
+                        </div>
+                        
+                        <div class="store-card">
+                            <div class="store-icon"><i class="fas fa-palette"></i></div>
+                            <h3 class="store-name">Sənət Qalereyası</h3>
+                            <p class="store-desc">Yerli rəssamların əsərləri və ənənəvi sənət nümunələri</p>
+                            <a href="#" class="store-btn">Ziyarət et</a>
+                        </div>
+                        
+                        <div class="store-card">
+                            <div class="store-icon"><i class="fas fa-mortar-pestle"></i></div>
+                            <h3 class="store-name">Ədviyyat Mağazası</h3>
+                            <p class="store-desc">Ənənəvi ədviyyatlar və təbii məhsullar</p>
+                            <a href="#" class="store-btn">Ziyarət et</a>
+                        </div>
+                        
+                        <div class="store-card">
+                            <div class="store-icon"><i class="fas fa-gem"></i></div>
+                            <h3 class="store-name">Zərgərlik</h3>
+                            <p class="store-desc">Ənənəvi zərgərlik məhsulları və bəzək əşyaları</p>
+                            <a href="#" class="store-btn">Ziyarət et</a>
+                        </div>
+                        
+                        <div class="store-card">
+                            <div class="store-icon"><i class="fas fa-tshirt"></i></div>
+                            <h3 class="store-name">Tikiş Mağazası</h3>
+                            <p class="store-desc">Ənənəvi milli geyimlər və müasir modellər</p>
+                            <a href="#" class="store-btn">Ziyarət et</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar - Reklam -->
+            <div class="sidebar right-sidebar">
+                <h3 class="ad-section-title">REKLAM</h3>
+                <div class="ad-container">
+                    <img src="https://images.unsplash.com/photo-1587135941943-9e64f46c5c7e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Sheki Sherbet" class="ad-image">
+                    <div class="ad-content">
+                        <h4 class="ad-title">Şəki Şərbəti</h4>
+                        <p class="ad-desc">Ənənəvi dadlar - 20% endirim bu həftə</p>
+                        <a href="#" class="ad-btn">Sifariş et</a>
+                    </div>
+                </div>
+                
+                <div class="ad-container">
+                    <img src="https://images.unsplash.com/photo-1577720643272-265f0936742f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Sheki Art" class="ad-image">
+                    <div class="ad-content">
+                        <h4 class="ad-title">Şəki Sənət Qalereyası</h4>
+                        <p class="ad-desc">Xüsusi sərgi - 25% endirim biletlərə</p>
+                        <a href="#" class="ad-btn">Al</a>
+                    </div>
+                </div>
+                
+                <div class="ad-container">
+                    <img src="https://images.unsplash.com/photo-1544787219-7f47ccb76574?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Sheki Spices" class="ad-image">
+                    <div class="ad-content">
+                        <h4 class="ad-title">Şəki Ədviyyatları</h4>
+                        <p class="ad-desc">Təbii ədviyyatlar - 15% endirim</p>
+                        <a href="#" class="ad-btn">Alış veriş et</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="contact-info">
+            <h3 class="contact-title">ƏLAQƏ MƏLUMATI</h3>
+            <p class="contact-details"><i class="fas fa-phone"></i>+994 50 123 45 67 | +994 55 765 43 21</p>
+            <p class="contact-details"><i class="fas fa-envelope"></i>info@shekisitesi.az | sales@shekisitesi.az</p>
+            <p class="contact-details"><i class="fas fa-map-marker-alt"></i>Şəki şəhəri, M.F.Axundov küçəsi 123</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3 class="footer-heading">OTELİN SLİDER</h3>
+                <p>Şəki regionunun ən yaxşı otel və mağaza təklifləri</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="footer-heading">SÜRƏTLİ KEÇİDLƏR</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Ana Səhifə</a></li>
+                    <li><a href="#">Otel Siyahısı</a></li>
+                    <li><a href="#">Mağazalar</a></li>
+                    <li><a href="#">Haqqımızda</a></li>
+                    <li><a href="#">Əlaqə</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="footer-heading">ƏLAQƏ</h3>
+                <p><i class="fas fa-phone"></i> +994 50 123 45 67</p>
+                <p><i class="fas fa-envelope"></i> info@shekisitesi.az</p>
+                <p><i class="fas fa-map-marker-alt"></i> Şəki, Azərbaycan</p>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            <p>&copy; 2023 OTELİN SLİDER. Bütün hüquqlar qorunur.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Slider avtomatik dəyişmə funksiyası
+        document.addEventListener('DOMContentLoaded', function() {
+            const hotelSlider = document.querySelector('.hotel-slider');
+            const storeSlider = document.querySelector('.store-slider');
+            
+            // Otel slideri üçün avtomatik sürüşmə
+            setInterval(() => {
+                hotelSlider.scrollBy({ left: 320, behavior: 'smooth' });
+                if (hotelSlider.scrollLeft + hotelSlider.clientWidth >= hotelSlider.scrollWidth - 10) {
+                    setTimeout(() => {
+                        hotelSlider.scrollTo({ left: 0, behavior: 'smooth' });
+                    }, 2000);
+                }
+            }, 4000);
+            
+            // Mağaza slideri üçün avtomatik sürüşmə
+            setInterval(() => {
+                storeSlider.scrollBy({ left: 250, behavior: 'smooth' });
+                if (storeSlider.scrollLeft + storeSlider.clientWidth >= storeSlider.scrollWidth - 10) {
+                    setTimeout(() => {
+                        storeSlider.scrollTo({ left: 0, behavior: 'smooth' });
+                    }, 2000);
+                }
+            }, 3500);
+            
+            // Dəyişən reklamlar
+            const ads = [
+                {
+                    title: "Sheki Saray Hotel",
+                    desc: "Xüsusi endirim - 15% endirim hər bir rezervasiyada",
+                    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+                    btn: "İndi Rezerv et"
+                },
+                {
+                    title: "Sheki Palace Hotel",
+                    desc: "Həftəsonu üçün xüsusi təklif - 2 gecə 1 gecə qiymətinə",
+                    image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+                    btn: "Ətraflı"
+                },
+                {
+                    title: "Şəki Şərbəti",
+                    desc: "Ənənəvi dadlar - 20% endirim bu həftə",
+                    image: "https://images.unsplash.com/photo-1587135941943-9e64f46c5c7e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+                    btn: "Sifariş et"
+                },
+                {
+                    title: "Şəki Sənət Qalereyası",
+                    desc: "Xüsusi sərgi - 25% endirim biletlərə",
+                    image: "https://images.unsplash.com/photo-1577720643272-265f0936742f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+                    btn: "Al"
+                },
+                {
+                    title: "Şəki Ədviyyatları",
+                    desc: "Təbii ədviyyatlar - 15% endirim",
+                    image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+                    btn: "Alış veriş et"
+                }
+            ];
+            
+            // Hər 10 saniyədən bir reklamları dəyiş
+            setInterval(changeAds, 10000);
+            
+            function changeAds() {
+                const adContainers = document.querySelectorAll('.ad-container');
+                adContainers.forEach(container => {
+                    const randomAd = ads[Math.floor(Math.random() * ads.length)];
+                    container.querySelector('.ad-image').src = randomAd.image;
+                    container.querySelector('.ad-title').textContent = randomAd.title;
+                    container.querySelector('.ad-desc').textContent = randomAd.desc;
+                    container.querySelector('.ad-btn').textContent = randomAd.btn;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
